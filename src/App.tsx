@@ -10,12 +10,17 @@ import DevicesPage from './components/DevicesPage';
 import CommunityPage from './components/CommunityPage';
 import FeedbackPage from './components/FeedbackPage';
 import AIAssistant from './components/AIAssistant';
+import { setMqttCallback } from "./mqtt";
 
 function AppContent() {
   const { user, loading, guestMode } = useAuth();
   const { t } = useLanguage();
   const [currentPage, setCurrentPage] = useState('home');
   const [city, setCity] = useState('苏州');
+  const [sensorData, setSensorData] = useState({
+    temperature: "--",
+    humidity: "--",
+  });
 
   // ✅ 自动加载 Umami 脚本（等价于官方 <script defer ...>）
   useEffect(() => {
@@ -25,6 +30,15 @@ function AppContent() {
     script.setAttribute('data-website-id', 'a98724a7-4dfc-47fe-84a6-4d780ae229ee');
     document.head.appendChild(script);
   }, []);
+
+  useEffect(() => {
+  setMqttCallback((data) => {
+    setSensorData({
+      temperature: data.temperature,
+      humidity: data.humidity,
+    });
+  });
+}, []);
 
   if (loading) {
     return (
@@ -48,7 +62,7 @@ function AppContent() {
       case 'plants':
         return <PlantCarePage />;
       case 'devices':
-        return <DevicesPage />;
+        return <DevicesPage sensorData={sensorData} />;
       case 'community':
         return <CommunityPage />;
       case 'feedback':
